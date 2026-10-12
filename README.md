@@ -13,6 +13,15 @@ examine, translate and create debug info; used in the kernel
 to create kernel/module BPF Type Format (BTF) information
 critical to BPF operation.
 
+The thread that connects all of this work is a strong belief
+that systems should be easier to understand.  To realize that
+we should be able to
+
+1. observe as large a surface of our systems as possible; and
+2. that process of observability should be as simple as possible
+
+Much of my work is dedicated to helping achieve these goals.
+
 ## Selected blog entries
 
 - [BPF - Making Split BPF Type Format (BTF) more resilient](https://blogs.oracle.com/linux/bpf-split-btf)
