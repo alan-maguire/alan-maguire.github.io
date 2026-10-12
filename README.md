@@ -22,6 +22,9 @@ we should be able to
 
 Much of my work is dedicated to helping achieve these goals.
 
+[Github](https://github.com/alan-maguire)
+[LinkedIn](https://www.linkedin.com/in/alan-maguire-1173195b/)
+
 ## Selected blog entries
 
 - [BPF - Making Split BPF Type Format (BTF) more resilient](https://blogs.oracle.com/linux/bpf-split-btf)
