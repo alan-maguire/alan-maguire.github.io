@@ -42,7 +42,8 @@ ffffffff84000100 run_init_process
 ffffffff84000210 try_to_run_init_process
 ```
 
-It is still not possible to trace these functions.
+It is not possible to trace these notrace functions, but at least
+we can see which ones they are.
 
 ### 2. Optimized functions with changed function signatures
 
@@ -84,11 +85,11 @@ inlining is extensive in modern environments.
 To give a sense of this, consider the numbers for just the kernel
 vmlinux image itself.
 
-On a representative distro kernel, I see around 60,000 un-inlined and
-available to trace functions, while there are about 100,000 functions
-that were inlined to about 600,000 sites.
+On a representative distro kernel, I see around 50,000 un-inlined and
+available to trace functions, while there are about 40,000 functions
+that were inlined to about 400,000 sites.
 
-That is we see 10x inline sites vs available-to-trace functions.
+That is we see nearly 10x inline sites vs available-to-trace functions.
 
 You can see this by examining the kernel source; the "inline" hint
 is used extensively (especially in headers containing small functions)
@@ -105,6 +106,20 @@ None, aside from changing the code to avoid inlining.  Tricks include
 making a function non-static, though even this breaks with a Link-Time
 Optimized (LTO) kernel.
 
+## Summing up
+
+Below we categorize the set of functions on a Fedora 43-based kernel.
+
+![fentry/fexit traceability of vmlinux functions](fentry_traceability_pie.svg)
+
+| Category | Functions | % |
+|---|---:|---:|
+| Available for fentry/fexit | 50,852 | 50.0% |
+| Inlined (no out-of-line copy) | 40,026 | 39.4% |
+| notrace / noinstr | 9,071 | 8.9% |
+| No BTF (compiler optimizations) | 1,655 | 1.6% |
+| **Total** | **101,604** | **100%** |
+
 ## Some good news
 
 In fact it is possible to trace at an inline site using a kprobe.
@@ -115,7 +130,7 @@ available on a system like BTF is.  BTF is found in /sys/kernel/btf
 and is baked into the kernel image rather than being a separate
 installable package like DWARF debuginfo.
 
-So if we had a way to compactly represent the 600,000 inline sites
+So if we had a way to compactly represent the 400,000 inline sites
 we could trace them.  However with 600,000 of anything the representation
 needs to be as compact as possible - how to proceed?
 
