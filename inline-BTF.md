@@ -131,11 +131,50 @@ and is baked into the kernel image rather than being a separate
 installable package like DWARF debuginfo.
 
 So if we had a way to compactly represent the 400,000 inline sites
-we could trace them.  However with 600,000 of anything the representation
+we could trace them.  However with 400,000 of anything the representation
 needs to be as compact as possible - how to proceed?
 
 ## Steps towards a solution
 
+So our aim is to add BTF kinds to the BPF Type Format to support inlining.
+The representation chosen will need to be as compact as possible given
+the number of inline sites, but at a minimum we want to connect
+
+- the address of an inline site;
+- the function that was inlined;
+- the parameters to the inlined function, if available
+
+A key part of what makes BTF compact is de-duplication; where duplicate
+information is removed as part of BTF encoding.  De-duplication of
+identical structures for example means we wind up with a single
+`struct sk_buff` rather than a copy in each object file that makes
+up the kernel and uses `sk_buff`s.
+
+So to minimize the representation of inlines we want to ensure that
+the representation is designed to take advantage of de-duplication.
+
+But before getting to that, a few additional changes were needed
+in and around BTF.
+
+### Describing the describer - BTF kind layout information
+
+We have seen that BTF is used to describe the set of types and
+functions associated with an object.  And as part of the inline
+work we want to introduce new BTF kinds to cover inline sites
+and how to locate their parameters.
+
+One problem we wanted to tackle is that it is painful every time
+a new `BTF_KIND_*` is introduced as all the tooling needs to learn
+about it.  An unfortunate fact is that in order to parse BTF, it
+was necessary to know how all the kinds in that BTF were laid out.
+So if a new kind was introduced, older tools that did not know about
+it just gave up.
+
+As a pre-requisite, [this series](https://lore.kernel.org/bpf/20260326145444.2076244-1-alan.maguire@oracle.com/) fixed this; it allows BPF tooling
+to read a "kind layout" section in BTF which informs users about all
+the kinds that can potentially be in that BTF.  This means that BTF
+can still be parsed by older tools (as long as they support the
+kind layout reading!), even if they do not know about new kinds.
 
 ## Inline support in libbpf, pahole and the kernel
 
