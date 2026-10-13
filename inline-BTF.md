@@ -13,17 +13,17 @@ function information.
 Here we discuss some of the reasons you may not be able to trace
 a function.
 
-### 1. "notrace" functions
+### 1. "notrace"/"noinstr" functions
 
-#### The problem
+#### Problem
 
-The function itself is marked "notrace" ; this is the case for
-functions that are themselves invoked as part of the tracing
+The function itself is marked "notrace" or "noinstr" ; this is the case
+for functions that are themselves invoked as part of the tracing
 infrastructure.  As you can imagine, tracing a function which
 then fires again because you are tracing, leading to a further
 firing and so on is a big problem.
 
-### Diagnosis
+#### Diagnosis
 
 A function is in `/proc/kallsyms` but not in `/sys/kernel/tracing/available_filter_functions`.
 
@@ -46,7 +46,7 @@ It is still not possible to trace these functions.
 
 ### 2. Optimized functions with changed function signatures
 
-#### The problem
+#### Problem
 
 To attach BPF tracing using fentry/fexit, it is vital that the BPF
 Type Format (BTF) information contains the function signature
@@ -73,7 +73,7 @@ that the parameters may not be in the registers you expect.
 
 ### 3. Inlined functions
 
-#### The problem
+#### Problem
 
 Compilers make all sorts of choices to optimize the objects they
 generate.  One big win is inlining, where a function - potentially
@@ -95,11 +95,11 @@ is used extensively (especially in headers containing small functions)
 and `__always_inline` - which tries to ensure the function is inlined
 rather than hinting to the compiler to do so - is used frequently too.
 
-#### The diagnosis
+#### Diagnosis
 
 The function is not in `/proc/kallsyms`.
 
-#### The solution
+#### Solution
 
 None, aside from changing the code to avoid inlining.  Tricks include
 making a function non-static, though even this breaks with a Link-Time
