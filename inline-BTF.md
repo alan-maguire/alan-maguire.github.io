@@ -176,6 +176,57 @@ the kinds that can potentially be in that BTF.  This means that BTF
 can still be parsed by older tools (as long as they support the
 kind layout reading!), even if they do not know about new kinds.
 
+## Extending BTF vlen, 
+
+The next problem was we want to collect information about inline sites
+in an ELF section - for example `.text` - in a BTF_KIND_LOCSEC location
+section; each entry consists of
+
+- the type id of the associated function (BTF_KIND_FUNC)
+- the type id of the associated location prototype (BTF_KIND_LOC_PROTO); it
+  consists of a set of BTF_KIND_LOC_PARAM, one for each parameter which
+  tells us where the parameter is to be found (in a register, on the stack
+  or not at all when set to 0).
+- the 32-bit offset of the location site relative to the ELF section start
+  address
+
+The problem is that we saw above that `.text` can have 400,000 of these, and
+the `struct btf_type` that represents the information about a BTF kind
+looks like this:
+
+```
+struct btf_type {
+	__u32                      name_off;             /*     0     4 */
+	__u32                      info;                 /*     4     4 */
+	union {
+		__u32              size;                 /*     8     4 */
+		__u32              type;                 /*     8     4 */
+	};                                               /*     8     4 */
+
+	/* size: 12, cachelines: 1, members: 3 */
+	/* last cacheline: 12 bytes */
+};
+```
+
+The `info` field consisted of
+
+- bits 0–15: vlen, the count of members, params, enumerators, etc
+- bits 16–23: unused.
+- bits 24–28: kind, which allows 32 kinds.
+- bits 29–30: unused.
+- bit 31: kind_flag, whose meaning depends on the kind (bitfield members, forward union vs struct, signed enums, and so on).
+
+The problem is that because we only had 16 bits to represent vlen, it
+artificially limited the LOCSEC to 65535 entries.  As a result we
+[extended the vlen field to use unused bits](https://lore.kernel.org/bpf/20260417143023.1551481-1-alan.maguire@oracle.com/), and also extended the
+kind bits to allow for more kinds in the future.  The updated layout:
+
+- bits 0–23: vlen. Maximum becomes 0x00ffffff (about 16.7M).
+- bits 24–30: kind, widened from 5 to 7 bits, which allows 128 kinds.
+- bit 31: kind_flag, unchanged.
+
+With this new layout we can easily express the number of inline sites we need.
+
 ## Inline support in libbpf, pahole and the kernel
 
 ## Using inline information to trace inlined functions
