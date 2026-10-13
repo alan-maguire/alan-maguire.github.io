@@ -27,6 +27,7 @@ Much of my work is dedicated to helping achieve these goals.
 
 ## Selected blog entries
 
+- [BPF - Adding Inline Function Information to the BPF Type Format (BTF)](./inline-BTF.md)
 - [BPF - Making Split BPF Type Format (BTF) more resilient](https://blogs.oracle.com/linux/bpf-split-btf)
 - [USDT Tracing Across Different Runtimes](https://blogs.oracle.com/linux/usdt-tracing-across-different-runtimes)
 - [From kernel to user-space tracing](https://blogs.oracle.com/linux/from-kernel-to-user-space-tracing)
